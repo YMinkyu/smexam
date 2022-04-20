@@ -1,0 +1,217 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>배경 이미지</title>
+    <style>
+
+
+
+
+        .container {
+            max-width: 960px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+            text-align: center;
+            margin: 20px 0 20px;
+        }
+
+        h1 small {
+            display: block;
+            font-size: 15px;
+            padding-top: 8px;
+            color: gray;
+        }
+
+        .avatar-upload {
+            position: relative;
+            max-width: 205px;
+            margin: 50px auto;
+        }
+
+        .avatar-upload .avatar-edit {
+            position: absolute;
+            right: 12px;
+            z-index: 1;
+            top: 10px;
+        }
+
+        .avatar-upload .avatar-edit input {
+            display: none;
+        }
+
+        .avatar-upload .avatar-edit input+label {
+            display: inline-block;
+            width: 34px;
+            height: 34px;
+            margin-bottom: 0;
+            border-radius: 100%;
+            background: #FFFFFF;
+            border: 1px solid transparent;
+            box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            font-weight: normal;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .avatar-upload .avatar-edit input+label:hover {
+            background: #f1f1f1;
+            border-color: #d6d6d6;
+        }
+
+        .avatar-upload .avatar-edit input+label:after {
+            content: "\f040";
+            font-family: 'FontAwesome';
+            color: #757575;
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            margin: auto;
+        }
+
+        .avatar-upload .avatar-preview {
+            width: 192px;
+            height: 192px;
+            position: relative;
+            border-radius: 100%;
+            border: 6px solid #F8F8F8;
+            box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar-upload .avatar-preview>div {
+            width: 100%;
+            height: 100%;
+            border-radius: 100%;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+    <script>
+        window.console = window.console || function (t) { };
+    </script>
+
+    <script>
+        if (document.location.search.match(/type=embed/gi)) {
+            window.parent.postMessage("resize", "*");
+        }
+    </script>
+</head>
+
+<body translate="no">
+    
+    
+    <div>
+        <center>표정 이미지 식별하기 프로젝트</center>
+    </div>
+
+    <button type="button" onclick="init()"> 시작 </button>
+    <button type="button" onclick="predict()"> 표정 예측 </button>
+    <!-- 이곳에 뷰가 나타난다.-->
+    <!--<div id="webcam-container"></div> -->
+    <div id="label-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+    <script type="text/javascript">
+        // More API functions here:
+        // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+
+        // the link to your model provided by Teachable Machine export panel
+        const URL = "./my_model(exam)/";
+
+        let model, webcam, labelContainer, maxPredictions;
+
+        // Load the image model and setup the webcam
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            // load the model and metadata
+            // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+            // or files from your local hard drive
+            // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            // Convenience function to setup a webcam
+            const flip = true; // whether to flip the webcam
+            /* webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+             await webcam.setup(); // request access to the webcam
+             await webcam.play();
+             window.requestAnimationFrame(loop);
+     
+             // append elements to the DOM*/
+
+            // document.getElementById("webcam-container").appendChild(webcam.canvas); 
+
+
+            labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) { // and class labels
+                labelContainer.appendChild(document.createElement("div"));
+            }
+        }
+        /*
+           async function loop() {
+               webcam.update(); // update the webcam frame
+               await predict();
+               window.requestAnimationFrame(loop);
+           }
+           */
+        // run the webcam image through the image model
+        async function predict() {
+            // predict can take in an image, video or canvas html element
+            //const prediction = await model.predict(webcam.canvas);
+            var image = document.getElementById('imagePreview')
+            const prediction = await model.predict(image, false);
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction =
+                    prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                labelContainer.childNodes[i].innerHTML = classPrediction;
+            }
+        }
+    </script>
+    <div class="webcam-container">
+   
+        <h1> 표정 이미지를 삽입해 주세요.
+            <small>이미지 미리보기</small>
+        </h1>
+        <div class="avatar-upload">
+            <div class="avatar-edit">
+                <input type="file" id="imageUpload" accept=".png, .jpg, .jpeg">
+                <label for="imageUpload"></label>
+            <div class="avatar-preview">
+                <img src="data:image/jpeg;base64,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" id="imagePreview">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script
+        src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-1b93190375e9ccc259df3a57c1abc0e64599724ae30d7ea4c6877eb615f89387.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script id="rendered-js">
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#imagePreview').attr('src', e.target.result);
+                    $('#imagePreview').hide();
+                    $('#imagePreview').fadeIn(650);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        $("#imageUpload").change(function () {
+            readURL(this);
+        });
+    </script>
+</body>
+
+</html> 
